@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Crud</string>
+    <string name="create_new_task">Tạo công việc mới</string>
+    <string name="task_name_label">Tên công việc:</string>
+    <string name="task_name_hint">Nhập tên công việc</string>
+    <string name="task_description_label">Mô tả:</string>
+    <string name="task_description_hint">Nhập mô tả công việc</string>
+    <string name="task_deadline_label">Hạn chót:</string>
+    <string name="select_deadline">Chọn ngày giờ</string>
+    <string name="button_cancel">Quay lại</string>
+    <string name="button_save">Lưu</string>
+    <string name="danh_s_ch_c_ng_vi_c">Danh sách công việc</string>
+</resources>

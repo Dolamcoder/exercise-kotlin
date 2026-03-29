@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "906917726327",
+    "project_id": "crudtodo-c7646",
+    "storage_bucket": "crudtodo-c7646.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:906917726327:android:e94e988dd2be9607ea9e72",
+        "android_client_info": {
+          "package_name": "com.example.crud"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUm8GoJVp5sQ27jYUipLjZrxHuaUZAhfw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
