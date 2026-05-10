@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "177975223625",
+    "project_id": "lap7-crud",
+    "storage_bucket": "lap7-crud.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:177975223625:android:885fe4dc18f88c28fea698",
+        "android_client_info": {
+          "package_name": "com.example.lap7"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbQciHNLljGxbpea9-YXHUn1NU9CAMSDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
