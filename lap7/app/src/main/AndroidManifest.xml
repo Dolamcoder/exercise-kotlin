@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Lap7">
         <activity
-            android:name="com.example.lap7.CourseDetailsActivity"
+            android:name="com.example.lap7.CourseListActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Lap7">
@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.lap7.CourseListActivity"
+            android:name="com.example.lap7.TodoDetailsActivity"
             android:exported="false"
             android:label="Danh sách khóa học"
             android:theme="@style/Theme.Lap7" />

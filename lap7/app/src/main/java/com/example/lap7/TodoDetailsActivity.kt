@@ -17,11 +17,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.lap7.CourseListActivity
 import com.example.lap7.ui.theme.Lap7Theme
 import com.google.firebase.firestore.FirebaseFirestore
 
-class CourseDetailsActivity : ComponentActivity() {
+class TodoDetailsActivity : ComponentActivity() {
     private val firestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +38,7 @@ class CourseDetailsActivity : ComponentActivity() {
         
         setContent {
             Lap7Theme {
-                CourseDetailsScreen(
+                TodoDetailsScreen(
                     firestore = firestore
                 )
             }
@@ -49,10 +48,10 @@ class CourseDetailsActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CourseDetailsScreen(
+fun TodoDetailsScreen(
     firestore: FirebaseFirestore
 ) {
-    var courseName by remember { mutableStateOf(TextFieldValue("")) }
+    var taskName by remember { mutableStateOf(TextFieldValue("")) }
     var description by remember { mutableStateOf(TextFieldValue("")) }
     var studyDuration by remember { mutableStateOf(TextFieldValue("")) }
     val context = LocalContext.current
@@ -60,7 +59,7 @@ fun CourseDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Quản lý khóa học") },
+                title = { Text("Quản lý nhiệm vụ") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
@@ -84,11 +83,11 @@ fun CourseDetailsScreen(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // Course Name Input
+            // Task Name Input
             OutlinedTextField(
-                value = courseName,
-                onValueChange = { courseName = it },
-                label = { Text("Tên khóa học") },
+                value = taskName,
+                onValueChange = { taskName = it },
+                label = { Text("Tên nhiệm vụ") },
                 placeholder = { Text("CS - Công ghệ Thông tin ứng dụng") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -100,7 +99,7 @@ fun CourseDetailsScreen(
             OutlinedTextField(
                 value = studyDuration,
                 onValueChange = { studyDuration = it },
-                label = { Text("Thời gian học") },
+                label = { Text("Thời gian") },
                 placeholder = { Text("3 tháng") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -112,7 +111,7 @@ fun CourseDetailsScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Mô tả khóa học") },
+                label = { Text("Mô tả") },
                 placeholder = { Text("Công nghệ thông tin ứng dụng") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -124,22 +123,22 @@ fun CourseDetailsScreen(
             // Add Data Button
             Button(
                 onClick = {
-                    if (courseName.text.isNotEmpty() && studyDuration.text.isNotEmpty()) {
-                        addCourseToFirestore(
-                            courseName.text,
+                    if (taskName.text.isNotEmpty() && studyDuration.text.isNotEmpty()) {
+                        addTodoToFirestore(
+                            taskName.text,
                             studyDuration.text,
                             description.text,
                             firestore,
                             context
                         )
                         // Reset fields
-                        courseName = TextFieldValue("")
+                        taskName = TextFieldValue("")
                         studyDuration = TextFieldValue("")
                         description = TextFieldValue("")
                     } else {
                         Toast.makeText(
                             context,
-                            "Vui lòng nhập tên khóa học và thời gian học",
+                            "Vui lòng nhập tên nhiệm vụ và thời gian",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -159,7 +158,7 @@ fun CourseDetailsScreen(
                 )
             }
 
-            // View Courses Button
+            // View Todos Button
             Button(
                 onClick = {
                     val intent = android.content.Intent(context, CourseListActivity::class.java)
@@ -174,7 +173,7 @@ fun CourseDetailsScreen(
                 )
             ) {
                 Text(
-                    "View Courses",
+                    "View Todos",
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -184,36 +183,36 @@ fun CourseDetailsScreen(
     }
 }
 
-fun addCourseToFirestore(
-    courseName: String,
+fun addTodoToFirestore(
+    taskName: String,
     studyDuration: String,
     description: String,
     firestore: FirebaseFirestore,
     context: android.content.Context
 ) {
-    android.util.Log.d("Firestore", "Starting to add course: $courseName")
+    android.util.Log.d("Firestore", "Starting to add todo: $taskName")
     
-    val courseData = mapOf(
-        "courseName" to courseName,
+    val todoData = mapOf(
+        "taskName" to taskName,
         "studyDuration" to studyDuration,
         "description" to description,
         "timestamp" to System.currentTimeMillis()
     )
 
-    android.util.Log.d("Firestore", "Course data: $courseData")
+    android.util.Log.d("Firestore", "Todo data: $todoData")
 
-    firestore.collection("courses")
-        .add(courseData)
+    firestore.collection("todos")
+        .add(todoData)
         .addOnSuccessListener { documentReference ->
-            android.util.Log.d("Firestore", "✓ Course added successfully with ID: ${documentReference.id}")
+            android.util.Log.d("Firestore", "✓ Todo added successfully with ID: ${documentReference.id}")
             Toast.makeText(
                 context, 
-                "Khóa học được thêm thành công! (ID: ${documentReference.id})", 
+                "Nhiệm vụ được thêm thành công! (ID: ${documentReference.id})",
                 Toast.LENGTH_SHORT
             ).show()
         }
         .addOnFailureListener { e ->
-            android.util.Log.e("Firestore", "✗ Error adding course: ${e.message}", e)
+            android.util.Log.e("Firestore", "✗ Error adding todo: ${e.message}", e)
             val errorMessage = when {
                 e.message?.contains("PERMISSION_DENIED") == true -> 
                     "Lỗi quyền: Vui lòng kiểm tra cấu hình Firestore Rules"
@@ -227,10 +226,10 @@ fun addCourseToFirestore(
 
 @Preview(showBackground = true)
 @Composable
-fun CourseDetailsScreenPreview() {
+fun TodoDetailsScreenPreview() {
     Lap7Theme {
         val firestore = FirebaseFirestore.getInstance()
-        CourseDetailsScreen(
+        TodoDetailsScreen(
             firestore = firestore
         )
     }

@@ -21,11 +21,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.example.lap7.Course
 import com.example.lap7.ui.theme.Lap7Theme
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -48,31 +46,31 @@ class CourseListActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseListScreen(firestore: FirebaseFirestore) {
-    var courses by remember { mutableStateOf<List<Course>>(emptyList()) }
+    var todos by remember { mutableStateOf<List<Todo>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var selectedCourse by remember { mutableStateOf<Course?>(null) }
+    var selectedTodo by remember { mutableStateOf<Todo?>(null) }
     var showEditDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Load courses when screen appears
+    // Load todos when screen appears
     LaunchedEffect(Unit) {
-        loadCoursesFromFirestore(firestore) { loadedCourses ->
-            courses = loadedCourses
+        loadTodosFromFirestore(firestore) { loadedTodos ->
+            todos = loadedTodos
             isLoading = false
         }
     }
 
-    if (showEditDialog && selectedCourse != null) {
-        EditCourseDialog(
-            course = selectedCourse!!,
+    if (showEditDialog && selectedTodo != null) {
+        EditTodoDialog(
+            todo = selectedTodo!!,
             firestore = firestore,
             onDismiss = { showEditDialog = false },
-            onCourseUpdated = { updatedCourse ->
+            onTodoUpdated = { updatedTodo ->
                 showEditDialog = false
-                selectedCourse = null
-                // Reload courses
-                loadCoursesFromFirestore(firestore) { loadedCourses ->
-                    courses = loadedCourses
+                selectedTodo = null
+                // Reload todos
+                loadTodosFromFirestore(firestore) { loadedTodos ->
+                    todos = loadedTodos
                 }
             }
         )
@@ -81,12 +79,24 @@ fun CourseListScreen(firestore: FirebaseFirestore) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Danh sách khóa học") },
+                title = { Text("Danh sách nhiệm vụ") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    val intent = android.content.Intent(context, TodoDetailsActivity::class.java)
+                    context.startActivity(intent)
+                },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Text("+", style = MaterialTheme.typography.headlineMedium)
+            }
         }
     ) { innerPadding ->
         Column(
@@ -102,7 +112,7 @@ fun CourseListScreen(firestore: FirebaseFirestore) {
                 ) {
                     CircularProgressIndicator()
                 }
-            } else if (courses.isEmpty()) {
+            } else if (todos.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -113,12 +123,12 @@ fun CourseListScreen(firestore: FirebaseFirestore) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            "Chưa có khóa học nào",
+                            "Chưa có nhiệm vụ nào",
                             style = MaterialTheme.typography.headlineSmall,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         Text(
-                            "Vui lòng thêm khóa học mới",
+                            "Vui lòng thêm nhiệm vụ mới",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.outline
                         )
@@ -126,7 +136,7 @@ fun CourseListScreen(firestore: FirebaseFirestore) {
                 }
             } else {
                 Text(
-                    "Tổng: ${courses.size} khóa học",
+                    "Tổng: ${todos.size} nhiệm vụ",
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(bottom = 12.dp),
                     color = MaterialTheme.colorScheme.outline
@@ -136,21 +146,21 @@ fun CourseListScreen(firestore: FirebaseFirestore) {
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(courses) { course ->
-                        CourseCard(
-                            course = course,
+                    items(todos) { todo ->
+                        TodoCard(
+                            todo = todo,
                             onEdit = {
-                                selectedCourse = course
+                                selectedTodo = todo
                                 showEditDialog = true
                             },
                             onDelete = {
-                                deleteCourseFromFirestore(
-                                    course.id,
+                                deleteTodoFromFirestore(
+                                    todo.id,
                                     firestore,
                                     context
                                 ) { success ->
                                     if (success) {
-                                        courses = courses.filter { it.id != course.id }
+                                        todos = todos.filter { it.id != todo.id }
                                     }
                                 }
                             }
@@ -163,8 +173,8 @@ fun CourseListScreen(firestore: FirebaseFirestore) {
 }
 
 @Composable
-fun CourseCard(
-    course: Course,
+fun TodoCard(
+    todo: Todo,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -190,21 +200,21 @@ fun CourseCard(
                         .weight(1f)
                 ) {
                     Text(
-                        text = course.courseName,
+                        text = todo.taskName,
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
                     Text(
-                        text = "Thời gian: ${course.studyDuration}",
+                        text = "Thời gian: ${todo.studyDuration}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    if (course.description.isNotEmpty()) {
+                    if (todo.description.isNotEmpty()) {
                         Text(
-                            text = course.description,
+                            text = todo.description,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier
                                 .padding(top = 8.dp)
@@ -271,21 +281,21 @@ fun CourseCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditCourseDialog(
-    course: Course,
+fun EditTodoDialog(
+    todo: Todo,
     firestore: FirebaseFirestore,
     onDismiss: () -> Unit,
-    onCourseUpdated: (Course) -> Unit
+    onTodoUpdated: (Todo) -> Unit
 ) {
-    var courseName by remember { mutableStateOf(TextFieldValue(course.courseName)) }
-    var description by remember { mutableStateOf(TextFieldValue(course.description)) }
-    var studyDuration by remember { mutableStateOf(TextFieldValue(course.studyDuration)) }
+    var taskName by remember { mutableStateOf(TextFieldValue(todo.taskName)) }
+    var description by remember { mutableStateOf(TextFieldValue(todo.description)) }
+    var studyDuration by remember { mutableStateOf(TextFieldValue(todo.studyDuration)) }
     var isUpdating by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Chỉnh sửa khóa học") },
+        title = { Text("Chỉnh sửa nhiệm vụ") },
         text = {
             Column(
                 modifier = Modifier
@@ -293,9 +303,9 @@ fun EditCourseDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 OutlinedTextField(
-                    value = courseName,
-                    onValueChange = { courseName = it },
-                    label = { Text("Tên khóa học") },
+                    value = taskName,
+                    onValueChange = { taskName = it },
+                    label = { Text("Tên nhiệm vụ") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 12.dp),
@@ -305,7 +315,7 @@ fun EditCourseDialog(
                 OutlinedTextField(
                     value = studyDuration,
                     onValueChange = { studyDuration = it },
-                    label = { Text("Thời gian học") },
+                    label = { Text("Thời gian") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 12.dp),
@@ -327,11 +337,11 @@ fun EditCourseDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    if (courseName.text.isNotEmpty()) {
+                    if (taskName.text.isNotEmpty()) {
                         isUpdating = true
-                        updateCourseInFirestore(
-                            course.id,
-                            courseName.text,
+                        updateTodoInFirestore(
+                            todo.id,
+                            taskName.text,
                             studyDuration.text,
                             description.text,
                             firestore,
@@ -339,9 +349,9 @@ fun EditCourseDialog(
                         ) { success ->
                             isUpdating = false
                             if (success) {
-                                onCourseUpdated(
-                                    course.copy(
-                                        courseName = courseName.text,
+                                onTodoUpdated(
+                                    todo.copy(
+                                        taskName = taskName.text,
                                         description = description.text,
                                         studyDuration = studyDuration.text
                                     )
@@ -351,7 +361,7 @@ fun EditCourseDialog(
                     } else {
                         Toast.makeText(
                             context,
-                            "Vui lòng nhập tên khóa học",
+                            "Vui lòng nhập tên nhiệm vụ",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -374,63 +384,63 @@ fun EditCourseDialog(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun loadCoursesFromFirestore(
+fun loadTodosFromFirestore(
     firestore: FirebaseFirestore,
-    onResult: (List<Course>) -> Unit
+    onResult: (List<Todo>) -> Unit
 ) {
-    firestore.collection("courses")
+    firestore.collection("todos")
         .get()
         .addOnSuccessListener { querySnapshot ->
-            val coursesList = querySnapshot.documents.map { doc ->
-                Course(
+            val todosList = querySnapshot.documents.map { doc ->
+                Todo(
                     id = doc.id,
-                    courseName = doc.getString("courseName") ?: "",
+                    taskName = doc.getString("taskName") ?: "",
                     studyDuration = doc.getString("studyDuration") ?: "",
                     description = doc.getString("description") ?: "",
                     timestamp = doc.getLong("timestamp") ?: 0L
                 )
             }.sortedByDescending { it.timestamp }
-            android.util.Log.d("Firestore", "✓ Loaded ${coursesList.size} courses")
-            onResult(coursesList)
+            android.util.Log.d("Firestore", "✓ Loaded ${todosList.size} todos")
+            onResult(todosList)
         }
         .addOnFailureListener { e ->
-            android.util.Log.e("Firestore", "✗ Error loading courses: ${e.message}", e)
+            android.util.Log.e("Firestore", "✗ Error loading todos: ${e.message}", e)
             android.util.Log.e("Firestore", "Exception: ", e)
             onResult(emptyList())
         }
 }
 
-fun updateCourseInFirestore(
-    courseId: String,
-    courseName: String,
+fun updateTodoInFirestore(
+    todoId: String,
+    taskName: String,
     studyDuration: String,
     description: String,
     firestore: FirebaseFirestore,
     context: android.content.Context,
     onResult: (Boolean) -> Unit
 ) {
-    android.util.Log.d("Firestore", "Updating course: $courseId")
+    android.util.Log.d("Firestore", "Updating todo: $todoId")
 
     val updateData = mapOf(
-        "courseName" to courseName,
+        "taskName" to taskName,
         "studyDuration" to studyDuration,
         "description" to description
     )
 
-    firestore.collection("courses")
-        .document(courseId)
+    firestore.collection("todos")
+        .document(todoId)
         .update(updateData)
         .addOnSuccessListener {
-            android.util.Log.d("Firestore", "✓ Course updated successfully: $courseId")
+            android.util.Log.d("Firestore", "✓ Todo updated successfully: $todoId")
             Toast.makeText(
                 context,
-                "Khóa học được cập nhật thành công!",
+                "Nhiệm vụ được cập nhật thành công!",
                 Toast.LENGTH_SHORT
             ).show()
             onResult(true)
         }
         .addOnFailureListener { e ->
-            android.util.Log.e("Firestore", "✗ Error updating course: ${e.message}", e)
+            android.util.Log.e("Firestore", "✗ Error updating todo: ${e.message}", e)
             Toast.makeText(
                 context,
                 "Lỗi: ${e.message}",
@@ -440,28 +450,28 @@ fun updateCourseInFirestore(
         }
 }
 
-fun deleteCourseFromFirestore(
-    courseId: String,
+fun deleteTodoFromFirestore(
+    todoId: String,
     firestore: FirebaseFirestore,
     context: android.content.Context,
     onResult: (Boolean) -> Unit
 ) {
-    android.util.Log.d("Firestore", "Deleting course: $courseId")
+    android.util.Log.d("Firestore", "Deleting todo: $todoId")
 
-    firestore.collection("courses")
-        .document(courseId)
+    firestore.collection("todos")
+        .document(todoId)
         .delete()
         .addOnSuccessListener {
-            android.util.Log.d("Firestore", "✓ Course deleted successfully: $courseId")
+            android.util.Log.d("Firestore", "✓ Todo deleted successfully: $todoId")
             Toast.makeText(
                 context,
-                "Khóa học được xóa thành công!",
+                "Nhiệm vụ được xóa thành công!",
                 Toast.LENGTH_SHORT
             ).show()
             onResult(true)
         }
         .addOnFailureListener { e ->
-            android.util.Log.e("Firestore", "✗ Error deleting course: ${e.message}", e)
+            android.util.Log.e("Firestore", "✗ Error deleting todo: ${e.message}", e)
             Toast.makeText(
                 context,
                 "Lỗi: ${e.message}",
